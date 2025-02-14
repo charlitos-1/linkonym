@@ -100,6 +100,61 @@ def make_word_info_json(xml_files, output_file):
         combine_dicionaries(word_info, current_info)
     word_info = convert_sets_to_lists(word_info)
     json.dump(word_info, open(output_file, "w"), indent=4)
+    
+    
+def play_game(word_info):
+    """
+    Plays a game where two initial words are given, and the player must find a path between them using synonyms.
+    """
+    print("Welcome to the Word Ladder game!")
+    print("You will be given two words, and you must find a path between them using synonyms.")
+    print("For example, to get from 'hot' to 'cold', you could go: hot -> warm -> cool -> cold.")
+    print("Let's get started!")
+    print()
+
+    while True:
+        start_word = input("Enter the starting word: ").strip().lower()
+        if start_word not in word_info:
+            print(f"Word '{start_word}' not found in the thesaurus. Please try again.")
+            continue
+
+        end_word = input("Enter the ending word: ").strip().lower()
+        if end_word not in word_info:
+            print(f"Word '{end_word}' not found in the thesaurus. Please try again.")
+            continue
+
+        if start_word == end_word:
+            print("The starting and ending words are the same. Please choose different words.")
+            continue
+
+        # Perform a breadth-first search to find a path between the two words.
+        visited = {start_word: None}
+        queue = [start_word]
+        while queue:
+            current_word = queue.pop(0)
+            if current_word == end_word:
+                break
+            for part_of_speech, info in word_info[current_word].items():
+                for synonym in info["synonyms"]:
+                    if synonym not in visited:
+                        visited[synonym] = current_word
+                        queue.append(synonym)
+
+        # If the end_word was not found in the visited set, no path exists.
+        if end_word not in visited:
+            print(f"No path found between '{start_word}' and '{end_word}'.")
+            print()
+            continue
+
+        # Reconstruct the path from the visited set.
+        path = [end_word]
+        current_word = end_word
+        while current_word != start_word:
+            current_word = visited[current_word]
+            path.insert(0, current_word)
+
+        print(f"Path from '{start_word}' to '{end_word}': {' -> '.join(path)}")
+        print()
 
 
 def main():
@@ -114,7 +169,7 @@ def main():
         make_word_info_json(xml_files, word_info_json)
     word_info = json.load(open(word_info_json))
     
-    print_word(word_info, "happy")
+    play_game(word_info)
 
 
 if __name__ == "__main__":
