@@ -1,0 +1,2 @@
+# synsearch
+synonym search game
